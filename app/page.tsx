@@ -13,29 +13,33 @@ export const revalidate = 60
 
 async function getData() {
   const supabase = supabaseAdmin()
-  const [announcementsRes, postersRes, photosRes, timetableRes] = await Promise.all([
+  const [announcementsRes, postersRes, photosRes, timetableRes, settingsRes] = await Promise.all([
     supabase.from('announcements').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false }),
     supabase.from('attendance_posters').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
     supabase.from('gallery_photos').select('*').eq('approved', true).order('created_at', { ascending: false }),
     supabase.from('timetable').select('*').order('updated_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('settings').select('*'),
   ])
+  const settingsMap: Record<string, string> = {}
+  for (const row of settingsRes.data || []) settingsMap[row.key] = row.value
   return {
     announcements: (announcementsRes.data || []) as Announcement[],
     posters: (postersRes.data || []) as AttendancePoster[],
     photos: (photosRes.data || []) as GalleryPhoto[],
     timetable: (timetableRes.data || null) as Timetable | null,
+    botOverlay: settingsMap['bot_overlay'] || '',
   }
 }
 
 export default async function Home() {
-  const { announcements, posters, photos, timetable } = await getData()
+  const { announcements, posters, photos, timetable, botOverlay } = await getData()
 
   return (
     <main className="max-w-2xl mx-auto">
       <Header />
       <Announcements announcements={announcements} />
       <AttendanceCarousel posters={posters} />
-      <TelegramBot />
+      <TelegramBot overlay={botOverlay} />
       <Moments photos={photos} />
       <TimetableSection timetable={timetable} />
       <Contact />

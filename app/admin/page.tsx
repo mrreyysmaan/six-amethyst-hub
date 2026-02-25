@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import {
   Lock, LogOut, Plus, Trash2, Pin, PinOff,
-  CheckCircle, XCircle, Upload, RefreshCw, ChevronDown, ChevronUp
+  CheckCircle, XCircle, Upload, RefreshCw, Wrench, Clock, Wifi
 } from 'lucide-react'
 import type { Announcement, AnnouncementTag, AttendancePoster, GalleryPhoto } from '@/lib/types'
 
@@ -67,7 +67,7 @@ function LoginScreen({ onLogin }: { onLogin: (pwd: string) => Promise<boolean> }
             placeholder="Enter password"
             value={pwd}
             onChange={(e) => setPwd(e.target.value)}
-            className="w-full border border-violet-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-violet-300"
+            className="w-full border border-violet-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-white outline-none focus:ring-2 focus:ring-violet-300"
           />
           {error && <p className="text-red-500 text-xs">{error}</p>}
           <button
@@ -630,14 +630,90 @@ function TimetableTab({ headers }: { headers: Record<string, string> }) {
   )
 }
 
+// ─── Bot Status Tab ──────────────────────────────────────────────────────────
+function BotStatusTab({ headers }: { headers: Record<string, string> }) {
+  const [current, setCurrent] = useState<string>('')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const load = async () => {
+    const res = await fetch('/api/settings')
+    const data = await res.json()
+    setCurrent(data.bot_overlay || '')
+  }
+
+  useEffect(() => { load() }, [])
+
+  const save = async (value: string) => {
+    setSaving(true)
+    setSaved(false)
+    await fetch('/api/settings', {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ key: 'bot_overlay', value }),
+    })
+    setCurrent(value)
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  const options = [
+    { value: '',            label: 'Live — Bot is active',        icon: <Wifi size={18} className="text-green-500" />,   desc: 'Bot section is fully visible and working.' },
+    { value: 'coming_soon', label: 'Coming Soon',                  icon: <Clock size={18} className="text-purple-400" />, desc: 'Shows a "Coming Soon" overlay over the bot section.' },
+    { value: 'maintenance', label: 'Under Maintenance',            icon: <Wrench size={18} className="text-amber-400" />, desc: 'Shows an "Under Maintenance — Back Soon!" overlay.' },
+  ]
+
+  return (
+    <div>
+      <h2 className="font-bold text-violet-900 mb-1">Bot Status</h2>
+      <p className="text-xs text-gray-500 mb-5">Control what visitors see on the English Speaking Bot section.</p>
+
+      <div className="space-y-3">
+        {options.map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => save(opt.value)}
+            disabled={saving}
+            className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center gap-4 ${
+              current === opt.value
+                ? 'border-violet-500 bg-violet-50'
+                : 'border-gray-200 bg-white hover:border-violet-300'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+              current === opt.value ? 'bg-violet-100' : 'bg-gray-100'
+            }`}>
+              {opt.icon}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className={`font-bold text-sm ${current === opt.value ? 'text-violet-900' : 'text-gray-800'}`}>{opt.label}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
+            </div>
+            {current === opt.value && (
+              <div className="w-5 h-5 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0">
+                <CheckCircle size={12} className="text-white" />
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {saving && <p className="text-center text-violet-500 text-sm mt-4 font-medium">Saving...</p>}
+      {saved && <p className="text-center text-green-600 text-sm mt-4 font-medium">✅ Saved! Site updates in ~1 minute.</p>}
+    </div>
+  )
+}
+
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
-type Tab = 'announcements' | 'gallery' | 'attendance' | 'timetable'
+type Tab = 'announcements' | 'gallery' | 'attendance' | 'timetable' | 'botstatus'
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'announcements', label: 'Announcements', icon: '📢' },
   { id: 'gallery',       label: 'Moments',       icon: '📸' },
   { id: 'attendance',    label: 'Attendance',    icon: '🏆' },
   { id: 'timetable',     label: 'Timetable',     icon: '📅' },
+  { id: 'botstatus',     label: 'Bot Status',    icon: '🎙️' },
 ]
 
 export default function AdminPage() {
@@ -704,6 +780,7 @@ export default function AdminPage() {
         {activeTab === 'gallery' && <GalleryTab headers={headers()} />}
         {activeTab === 'attendance' && <AttendanceTab headers={headers()} />}
         {activeTab === 'timetable' && <TimetableTab headers={headers()} />}
+        {activeTab === 'botstatus' && <BotStatusTab headers={headers()} />}
       </div>
     </div>
   )
