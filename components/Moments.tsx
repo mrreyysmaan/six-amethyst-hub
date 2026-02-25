@@ -37,19 +37,34 @@ function UploadModal({ onClose }: { onClose: () => void }) {
     setUploading(true)
     setError('')
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('uploader_name', name)
-      formData.append('caption', caption)
-
-      const res = await fetch('/api/gallery/upload', {
+      // Step 1: get a signed upload URL
+      const signRes = await fetch('/api/gallery/sign-upload', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name }),
       })
-      if (!res.ok) throw new Error('Upload failed')
+      const signData = await signRes.json()
+      if (!signRes.ok) throw new Error(signData.error || 'Could not get upload URL')
+
+      // Step 2: upload directly to Supabase (no Vercel size limit)
+      const uploadRes = await fetch(signData.signedUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      })
+      if (!uploadRes.ok) throw new Error('Storage upload failed')
+
+      // Step 3: save the record (pending approval)
+      const saveRes = await fetch('/api/gallery/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_url: signData.publicUrl, uploader_name: name, caption }),
+      })
+      if (!saveRes.ok) throw new Error('Failed to save photo')
+
       setDone(true)
-    } catch {
-      setError('Something went wrong. Please try again.')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.')
     } finally {
       setUploading(false)
     }

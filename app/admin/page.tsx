@@ -368,26 +368,51 @@ function AttendanceTab({ headers }: { headers: Record<string, string> }) {
     setUploadError('')
     setUploadSuccess(false)
     try {
-      const form = new FormData()
-      form.append('file', file)
-      form.append('month_label', monthLabel)
-      const res = await fetch('/api/attendance', {
+      const ext = file.name.split('.').pop() || 'jpg'
+      const filename = `attendance-${Date.now()}.${ext}`
+
+      // Step 1: get a signed upload URL from our API
+      const signRes = await fetch('/api/sign-upload', {
         method: 'POST',
-        headers: { 'x-admin-token': headers['x-admin-token'] },
-        body: form,
+        headers,
+        body: JSON.stringify({ bucket: 'attendance-posters', filename }),
       })
-      const data = await res.json()
-      if (!res.ok) {
-        setUploadError(`Upload failed: ${data.error || res.statusText}`)
+      const signData = await signRes.json()
+      if (!signRes.ok) {
+        setUploadError(`Could not get upload URL: ${signData.error}`)
         return
       }
+
+      // Step 2: upload the file directly to Supabase (bypasses Vercel size limit)
+      const uploadRes = await fetch(signData.signedUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      })
+      if (!uploadRes.ok) {
+        setUploadError(`Storage upload failed: ${uploadRes.statusText}`)
+        return
+      }
+
+      // Step 3: save the record to the database
+      const saveRes = await fetch('/api/attendance', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ image_url: signData.publicUrl, month_label: monthLabel }),
+      })
+      const saveData = await saveRes.json()
+      if (!saveRes.ok) {
+        setUploadError(`Database save failed: ${saveData.error}`)
+        return
+      }
+
       setFile(null)
       setPreview(null)
       setMonthLabel('')
       setUploadSuccess(true)
       await load()
     } catch (e) {
-      setUploadError(`Network error: ${e instanceof Error ? e.message : 'Unknown error'}`)
+      setUploadError(`Error: ${e instanceof Error ? e.message : 'Unknown error'}`)
     } finally {
       setUploading(false)
     }
@@ -503,24 +528,50 @@ function TimetableTab({ headers }: { headers: Record<string, string> }) {
     setUploadError('')
     setUploadSuccess(false)
     try {
-      const form = new FormData()
-      form.append('file', file)
-      const res = await fetch('/api/timetable', {
+      const ext = file.name.split('.').pop() || 'jpg'
+      const filename = `timetable-${Date.now()}.${ext}`
+
+      // Step 1: get a signed upload URL
+      const signRes = await fetch('/api/sign-upload', {
         method: 'POST',
-        headers: { 'x-admin-token': headers['x-admin-token'] },
-        body: form,
+        headers,
+        body: JSON.stringify({ bucket: 'timetable', filename }),
       })
-      const data = await res.json()
-      if (!res.ok) {
-        setUploadError(`Upload failed: ${data.error || res.statusText}`)
+      const signData = await signRes.json()
+      if (!signRes.ok) {
+        setUploadError(`Could not get upload URL: ${signData.error}`)
         return
       }
+
+      // Step 2: upload file directly to Supabase
+      const uploadRes = await fetch(signData.signedUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      })
+      if (!uploadRes.ok) {
+        setUploadError(`Storage upload failed: ${uploadRes.statusText}`)
+        return
+      }
+
+      // Step 3: save the record
+      const saveRes = await fetch('/api/timetable', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ image_url: signData.publicUrl }),
+      })
+      const saveData = await saveRes.json()
+      if (!saveRes.ok) {
+        setUploadError(`Database save failed: ${saveData.error}`)
+        return
+      }
+
       setFile(null)
       setPreview(null)
       setUploadSuccess(true)
       await load()
     } catch (e) {
-      setUploadError(`Network error: ${e instanceof Error ? e.message : 'Unknown error'}`)
+      setUploadError(`Error: ${e instanceof Error ? e.message : 'Unknown error'}`)
     } finally {
       setUploading(false)
     }

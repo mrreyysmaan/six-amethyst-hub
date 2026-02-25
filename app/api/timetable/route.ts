@@ -22,30 +22,15 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const formData = await req.formData()
-  const file = formData.get('file') as File
-
-  if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+  const { image_url } = await req.json()
+  if (!image_url) return NextResponse.json({ error: 'image_url required' }, { status: 400 })
 
   const supabase = supabaseAdmin()
-  const ext = file.name.split('.').pop() || 'jpg'
-  const filename = `timetable-${Date.now()}.${ext}`
-
-  const { error: uploadError } = await supabase.storage
-    .from('timetable')
-    .upload(filename, file, { contentType: file.type, upsert: false })
-
-  if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
-
-  const { data: { publicUrl } } = supabase.storage
-    .from('timetable')
-    .getPublicUrl(filename)
-
   // Delete old records and insert new
   await supabase.from('timetable').delete().neq('id', '00000000-0000-0000-0000-000000000000')
   const { data, error: dbError } = await supabase
     .from('timetable')
-    .insert([{ image_url: publicUrl }])
+    .insert([{ image_url }])
     .select()
     .single()
 

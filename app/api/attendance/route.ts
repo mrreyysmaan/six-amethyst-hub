@@ -21,31 +21,16 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const formData = await req.formData()
-  const file = formData.get('file') as File
-  const monthLabel = formData.get('month_label') as string
+  const { image_url, month_label } = await req.json()
 
-  if (!file || !monthLabel) {
-    return NextResponse.json({ error: 'File and month label required' }, { status: 400 })
+  if (!image_url || !month_label) {
+    return NextResponse.json({ error: 'image_url and month_label required' }, { status: 400 })
   }
 
   const supabase = supabaseAdmin()
-  const ext = file.name.split('.').pop() || 'jpg'
-  const filename = `attendance-${Date.now()}.${ext}`
-
-  const { error: uploadError } = await supabase.storage
-    .from('attendance-posters')
-    .upload(filename, file, { contentType: file.type, upsert: false })
-
-  if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
-
-  const { data: { publicUrl } } = supabase.storage
-    .from('attendance-posters')
-    .getPublicUrl(filename)
-
   const { data, error: dbError } = await supabase
     .from('attendance_posters')
-    .insert([{ image_url: publicUrl, month_label: monthLabel, sort_order: 0 }])
+    .insert([{ image_url, month_label, sort_order: 0 }])
     .select()
     .single()
 
