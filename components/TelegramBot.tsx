@@ -31,8 +31,8 @@ export default function TelegramBot() {
             </div>
             <div className="absolute bottom-0.5 right-0.5 w-5 h-5 rounded-full bg-green-400 border-2 border-zinc-900" />
           </div>
-          <h3 className="text-2xl font-black tracking-tight gradient-text-purple">MyBFF6A</h3>
-          <p className="text-zinc-400 text-xs mt-1 font-semibold tracking-widest uppercase">English Speaking Buddy</p>
+          <h3 className="text-2xl font-black tracking-tight gradient-text-purple">MyBFF</h3>
+          <p className="text-zinc-400 text-xs mt-1 font-semibold tracking-widest uppercase">6 Amethyst Speaking Assistant</p>
         </div>
 
         {/* Body */}
@@ -72,7 +72,7 @@ export default function TelegramBot() {
             style={{ background: 'linear-gradient(135deg, #A855F7, #6366F1)', boxShadow: '0 4px 20px #A855F740' }}
           >
             <Send size={15} />
-            Open MyBFF6A on Telegram
+            Open MyBFF on Telegram
           </a>
         </div>
       </div>
