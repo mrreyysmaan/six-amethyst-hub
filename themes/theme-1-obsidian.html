@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theme 1 — Obsidian</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #111827;
+    color: #F9FAFB;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #1F1135 0%, #1a1a2e 50%, #111827 100%);
+    border-bottom: 1px solid #7C3AED33;
+    padding: 36px 20px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, #7C3AED22 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-class {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #8B5CF6;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #C4B5FD 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+  .header-tagline {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #FBBF24;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .header-tagline span { opacity: 0.4; margin: 0 4px; }
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .nav a {
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: #ffffff0d;
+    border: 1px solid #ffffff15;
+    color: #D1D5DB;
+    font-size: 12px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .nav a:hover { background: #8B5CF622; border-color: #8B5CF6; color: #fff; }
+
+  /* ── MAIN ── */
+  main { max-width: 480px; margin: 0 auto; padding-bottom: 80px; }
+
+  /* ── SECTION ── */
+  section { padding: 28px 16px; border-bottom: 1px solid #1F2937; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .section-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #7C3AED, #5B21B6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 4px 12px #7C3AED44;
+    flex-shrink: 0;
+  }
+  .section-title { font-size: 16px; font-weight: 700; color: #F9FAFB; }
+  .section-sub { font-size: 11px; color: #6B7280; margin-top: 1px; }
+
+  /* ── ANNOUNCEMENT CARD ── */
+  .card {
+    background: #1F2937;
+    border: 1px solid #374151;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #7C3AED66; }
+  .card.pinned { border-color: #FBBF2444; background: #1c1a14; }
+  .card-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .tag.reminder { background: #FBBF2420; color: #FBBF24; border: 1px solid #FBBF2430; }
+  .tag.event    { background: #3B82F620; color: #60A5FA; border: 1px solid #3B82F630; }
+  .tag.urgent   { background: #EF444420; color: #F87171; border: 1px solid #EF444430; }
+  .tag.general  { background: #8B5CF620; color: #A78BFA; border: 1px solid #8B5CF630; }
+  .tag.collection { background: #10B98120; color: #34D399; border: 1px solid #10B98130; }
+  .pin-badge { font-size: 10px; color: #FBBF24; font-weight: 600; }
+  .card-title { font-size: 14px; font-weight: 700; color: #F3F4F6; line-height: 1.4; }
+  .card-date { font-size: 11px; color: #4B5563; margin-top: 4px; }
+  .card-preview { font-size: 13px; color: #9CA3AF; margin-top: 8px; line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .deadline-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600;
+    background: #EF444415; color: #F87171;
+    border: 1px solid #EF444430;
+    border-radius: 10px; padding: 6px 12px; margin-top: 10px;
+  }
+
+  /* ── BOT SECTION ── */
+  .bot-card {
+    background: linear-gradient(135deg, #0F0520, #1a0a2e, #0d1a3a);
+    border: 1px solid #7C3AED33;
+    border-radius: 24px;
+    padding: 24px 20px;
+    text-align: center;
+  }
+  .bot-avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 3px solid #FBBF24;
+    background: #2D2040;
+    margin: 0 auto 12px;
+    overflow: hidden;
+    box-shadow: 0 0 20px #FBBF2440;
+  }
+  .bot-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .bot-name { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+  .bot-desc { font-size: 12px; color: #9CA3AF; margin-top: 6px; line-height: 1.6; }
+  .steps { text-align: left; margin: 16px 0; }
+  .step { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+  .step-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #FBBF24; color: #111;
+    font-size: 11px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .step p { font-size: 12px; color: #D1D5DB; line-height: 1.5; padding-top: 2px; }
+  .bot-btn {
+    display: block; width: 100%;
+    background: linear-gradient(135deg, #FBBF24, #F59E0B);
+    color: #111; font-weight: 800; font-size: 15px;
+    padding: 14px; border-radius: 14px;
+    text-decoration: none; margin-top: 16px;
+    box-shadow: 0 4px 20px #FBBF2440;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── CONTACT ── */
+  .contact-card {
+    background: #1F2937;
+    border: 1px solid #374151;
+    border-radius: 24px;
+    padding: 28px 20px;
+    text-align: center;
+  }
+  .contact-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, #7C3AED, #5B21B6);
+    margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    box-shadow: 0 4px 20px #7C3AED44;
+  }
+  .contact-name { font-size: 20px; font-weight: 800; }
+  .contact-roles { display: flex; gap: 8px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+  .role-pill {
+    font-size: 10px; color: #9CA3AF;
+    background: #111827; border: 1px solid #374151;
+    padding: 4px 10px; border-radius: 999px;
+  }
+  .wa-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: #16a34a; color: #fff;
+    font-size: 14px; font-weight: 700;
+    padding: 14px; border-radius: 14px;
+    text-decoration: none; margin-top: 20px;
+    box-shadow: 0 4px 16px #16a34a44;
+  }
+
+  /* ── BACK TO TOP ── */
+  .back-top {
+    position: fixed;
+    bottom: 24px; right: 20px;
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, #7C3AED, #5B21B6);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px #7C3AED66;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s, transform 0.2s;
+    z-index: 100;
+    border: none;
+  }
+  .back-top.visible { opacity: 1; pointer-events: all; }
+  .back-top:hover { transform: translateY(-2px); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #0D1117;
+    text-align: center;
+    padding: 20px;
+    font-size: 12px;
+    color: #374151;
+    border-top: 1px solid #1F2937;
+  }
+
+  /* Label */
+  .theme-label {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: #7C3AED; color: white;
+    text-align: center; font-size: 11px; font-weight: 700;
+    padding: 6px; letter-spacing: 2px; text-transform: uppercase; z-index: 200;
+  }
+  body { padding-top: 30px; }
+</style>
+</head>
+<body>
+
+<div class="theme-label">Theme 1 — Obsidian · Dark &amp; Minimal</div>
+
+<div class="header">
+  <p class="header-class">6 Amethyst</p>
+  <h1>6 Amethyst Hub</h1>
+  <p class="header-tagline">Learn<span>·</span>Love<span>·</span>Legacy</p>
+  <nav class="nav">
+    <a href="#">Announcements</a>
+    <a href="#">Attendance</a>
+    <a href="#">Speaking Bot</a>
+    <a href="#">Moments</a>
+    <a href="#">Timetable</a>
+    <a href="#">Contact</a>
+  </nav>
+</div>
+
+<main>
+  <!-- Announcements -->
+  <section>
+    <div class="section-header">
+      <div class="section-icon">📢</div>
+      <div>
+        <div class="section-title">Announcements</div>
+        <div class="section-sub">Latest updates from Mr Reyy</div>
+      </div>
+    </div>
+
+    <div class="card pinned">
+      <div class="card-top">
+        <span class="pin-badge">📌 Pinned</span>
+        <span class="tag reminder">Reminder</span>
+      </div>
+      <div class="card-title">PIBG Meeting — This Saturday</div>
+      <div class="card-date">🕐 24 Feb 2026</div>
+      <div class="card-preview">Dear parents, please be informed that the PIBG meeting will be held this Saturday at 9am in the school hall. Attendance is highly encouraged.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="tag event">Event</span>
+      </div>
+      <div class="card-title">Hari Kecemerlangan — 7 March</div>
+      <div class="card-date">🕐 20 Feb 2026</div>
+      <div class="card-preview">All pupils who achieved straight As are invited to attend the Hari Kecemerlangan ceremony. Please be in full school uniform.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <span class="tag urgent">Urgent</span>
+      </div>
+      <div class="card-title">Sumbangan Khas — Deadline Tomorrow</div>
+      <div class="card-date">🕐 18 Feb 2026</div>
+      <div class="card-preview">Kindly make your payment for Sumbangan Khas by tomorrow. You may pass the envelope to Mr Reyy directly.</div>
+      <div class="deadline-badge">⏰ Due: 25 Feb 2026 — Tomorrow!</div>
+    </div>
+  </section>
+
+  <!-- Bot Section -->
+  <section>
+    <div class="section-header">
+      <div class="section-icon">🎙️</div>
+      <div>
+        <div class="section-title">English Speaking Bot</div>
+        <div class="section-sub">Practice speaking with your AI friend</div>
+      </div>
+    </div>
+    <div class="bot-card">
+      <div class="bot-avatar">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%237C3AED'/%3E%3Ctext x='50' y='65' text-anchor='middle' font-size='40' fill='white'%3E🤖%3C/text%3E%3C/svg%3E" alt="Bot" />
+      </div>
+      <div class="bot-name">MyBFF6A</div>
+      <div class="bot-desc">Your English Speaking Buddy — built by Mr Reyy to help you practise speaking confidently.</div>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><p>Tap the button below to open Telegram.</p></div>
+        <div class="step"><div class="step-num">2</div><p>Press the <strong>Start</strong> button in the chat.</p></div>
+        <div class="step"><div class="step-num">3</div><p>Follow the bot's instructions step by step.</p></div>
+        <div class="step"><div class="step-num">4</div><p>Speak clearly and have fun!</p></div>
+      </div>
+      <a href="https://t.me/mybff6Abot" class="bot-btn">Open MyBFF6A on Telegram →</a>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section>
+    <div class="section-header">
+      <div class="section-icon">👨‍🏫</div>
+      <div>
+        <div class="section-title">Contact Mr Reyy</div>
+        <div class="section-sub">Reach out anytime</div>
+      </div>
+    </div>
+    <div class="contact-card">
+      <div class="contact-avatar">👨‍🏫</div>
+      <div class="contact-name">Mr Reyy</div>
+      <div class="contact-roles">
+        <span class="role-pill">Class Teacher</span>
+        <span class="role-pill">English Teacher</span>
+        <span class="role-pill">6 Amethyst</span>
+      </div>
+      <p style="font-size:13px;color:#6B7280;margin-top:14px;line-height:1.6;">Have a question or concern? Feel free to reach out on WhatsApp.</p>
+      <a href="https://wa.me/+60104513351" class="wa-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        WhatsApp Mr Reyy
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer>6 Amethyst Hub · Built by Mr Reyy · 2026</footer>
+
+<button class="back-top" id="backTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+  const btn = document.getElementById('backTop');
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 200);
+  });
+</script>
+</body>
+</html>

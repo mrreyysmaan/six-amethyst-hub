@@ -7,36 +7,18 @@ import TelegramBot from '@/components/TelegramBot'
 import Moments from '@/components/Moments'
 import TimetableSection from '@/components/Timetable'
 import Contact from '@/components/Contact'
+import BackToTop from '@/components/BackToTop'
 
-export const revalidate = 60 // revalidate every 60 seconds
+export const revalidate = 60
 
 async function getData() {
   const supabase = supabaseAdmin()
-
   const [announcementsRes, postersRes, photosRes, timetableRes] = await Promise.all([
-    supabase
-      .from('announcements')
-      .select('*')
-      .order('pinned', { ascending: false })
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('attendance_posters')
-      .select('*')
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('gallery_photos')
-      .select('*')
-      .eq('approved', true)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('timetable')
-      .select('*')
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+    supabase.from('announcements').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false }),
+    supabase.from('attendance_posters').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
+    supabase.from('gallery_photos').select('*').eq('approved', true).order('created_at', { ascending: false }),
+    supabase.from('timetable').select('*').order('updated_at', { ascending: false }).limit(1).maybeSingle(),
   ])
-
   return {
     announcements: (announcementsRes.data || []) as Announcement[],
     posters: (postersRes.data || []) as AttendancePoster[],
@@ -51,21 +33,18 @@ export default async function Home() {
   return (
     <main className="max-w-2xl mx-auto">
       <Header />
+      <Announcements announcements={announcements} />
+      <AttendanceCarousel posters={posters} />
+      <TelegramBot />
+      <Moments photos={photos} />
+      <TimetableSection timetable={timetable} />
+      <Contact />
 
-      <div className="divide-y divide-violet-100">
-        <Announcements announcements={announcements} />
-        <AttendanceCarousel posters={posters} />
-        <TelegramBot />
-        <Moments photos={photos} />
-        <TimetableSection timetable={timetable} />
-        <Contact />
-      </div>
-
-      {/* Footer */}
-      <footer className="bg-violet-900 text-violet-300 text-center text-xs py-5 px-4">
-        <p>6 Amethyst Hub · Built with 💜 by Mr Reyy</p>
-        <p className="mt-1 text-violet-500">{new Date().getFullYear()}</p>
+      <footer className="bg-zinc-950 border-t border-zinc-800 text-center py-6 px-4">
+        <p className="text-zinc-600 text-xs font-medium">6 Amethyst Hub · Built by Mr Reyy · 2026</p>
       </footer>
+
+      <BackToTop />
     </main>
   )
 }
