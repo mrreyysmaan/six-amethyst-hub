@@ -1,0 +1,65 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabase'
+
+function isAdmin(req: NextRequest) {
+  const token = req.headers.get('x-admin-token')
+  return token === process.env.ADMIN_PASSWORD
+}
+
+export async function GET() {
+  const supabase = supabaseAdmin()
+  const { data, error } = await supabase
+    .from('attendance_posters')
+    .select('*')
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: false })
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
+export async function POST(req: NextRequest) {
+  if (!isAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const formData = await req.formData()
+  const file = formData.get('file') as File
+  const monthLabel = formData.get('month_label') as string
+
+  if (!file || !monthLabel) {
+    return NextResponse.json({ error: 'File and month label required' }, { status: 400 })
+  }
+
+  const supabase = supabaseAdmin()
+  const ext = file.name.split('.').pop() || 'jpg'
+  const filename = `attendance-${Date.now()}.${ext}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('attendance-posters')
+    .upload(filename, file, { contentType: file.type, upsert: false })
+
+  if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('attendance-posters')
+    .getPublicUrl(filename)
+
+  const { data, error: dbError } = await supabase
+    .from('attendance_posters')
+    .insert([{ image_url: publicUrl, month_label: monthLabel, sort_order: 0 }])
+    .select()
+    .single()
+
+  if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
+export async function DELETE(req: NextRequest) {
+  if (!isAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { id } = await req.json()
+  const supabase = supabaseAdmin()
+  const { error } = await supabase.from('attendance_posters').delete().eq('id', id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
+}

@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+:root {
+  --amethyst: #7C3AED;
+  --amethyst-dark: #5B21B6;
+  --amethyst-deeper: #4C1D95;
+  --amethyst-light: #EDE9FE;
+  --amethyst-mid: #DDD6FE;
+  --gold: #F59E0B;
+  --gold-light: #FEF3C7;
+  --gold-bright: #FBBF24;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #F5F3FF;
+  color: #1F2937;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #EDE9FE;
+}
+::-webkit-scrollbar-thumb {
+  background: #7C3AED;
+  border-radius: 3px;
+}
+
+/* Embla Carousel */
+.embla {
+  overflow: hidden;
+}
+.embla__container {
+  display: flex;
+}
+.embla__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+/* Announcement body text */
+.announcement-body {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Shimmer loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #EDE9FE 25%, #DDD6FE 50%, #EDE9FE 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Floating animation for header */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Pulse ring for WhatsApp */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: #22c55e;
+  animation: pulse-ring 1.5s ease-out infinite;
+}
