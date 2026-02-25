@@ -647,11 +647,12 @@ export default function AdminPage() {
 
   const handleLogin = async (pwd: string): Promise<boolean> => {
     setAuthChecking(true)
-    const res = await fetch('/api/announcements', {
+    const res = await fetch('/api/admin/verify', {
+      method: 'POST',
       headers: { 'x-admin-token': pwd },
     })
     setAuthChecking(false)
-    if (res.ok || res.status !== 401) {
+    if (res.ok) {
       login(pwd)
       return true
     }
