@@ -341,6 +341,8 @@ function AttendanceTab({ headers }: { headers: Record<string, string> }) {
   const [preview, setPreview] = useState<string | null>(null)
   const [monthLabel, setMonthLabel] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const [uploadSuccess, setUploadSuccess] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const load = async () => {
@@ -356,24 +358,39 @@ function AttendanceTab({ headers }: { headers: Record<string, string> }) {
   const handleFile = (f: File) => {
     setFile(f)
     setPreview(URL.createObjectURL(f))
+    setUploadError('')
+    setUploadSuccess(false)
   }
 
   const upload = async () => {
     if (!file || !monthLabel) return
     setUploading(true)
-    const form = new FormData()
-    form.append('file', file)
-    form.append('month_label', monthLabel)
-    await fetch('/api/attendance', {
-      method: 'POST',
-      headers: { 'x-admin-token': headers['x-admin-token'] },
-      body: form,
-    })
-    setFile(null)
-    setPreview(null)
-    setMonthLabel('')
-    await load()
-    setUploading(false)
+    setUploadError('')
+    setUploadSuccess(false)
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      form.append('month_label', monthLabel)
+      const res = await fetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'x-admin-token': headers['x-admin-token'] },
+        body: form,
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setUploadError(`Upload failed: ${data.error || res.statusText}`)
+        return
+      }
+      setFile(null)
+      setPreview(null)
+      setMonthLabel('')
+      setUploadSuccess(true)
+      await load()
+    } catch (e) {
+      setUploadError(`Network error: ${e instanceof Error ? e.message : 'Unknown error'}`)
+    } finally {
+      setUploading(false)
+    }
   }
 
   const remove = async (id: string) => {
@@ -412,6 +429,16 @@ function AttendanceTab({ headers }: { headers: Record<string, string> }) {
           onChange={(e) => setMonthLabel(e.target.value)}
           className="w-full border border-violet-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-violet-300"
         />
+        {uploadError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2.5 text-red-600 text-xs font-medium">
+            ❌ {uploadError}
+          </div>
+        )}
+        {uploadSuccess && (
+          <div className="bg-green-50 border border-green-200 rounded-xl px-3 py-2.5 text-green-600 text-xs font-medium">
+            ✅ Poster uploaded successfully!
+          </div>
+        )}
         <button
           onClick={upload}
           disabled={!file || !monthLabel || uploading}
@@ -451,6 +478,8 @@ function TimetableTab({ headers }: { headers: Record<string, string> }) {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const [uploadSuccess, setUploadSuccess] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const load = async () => {
@@ -464,22 +493,37 @@ function TimetableTab({ headers }: { headers: Record<string, string> }) {
   const handleFile = (f: File) => {
     setFile(f)
     setPreview(URL.createObjectURL(f))
+    setUploadError('')
+    setUploadSuccess(false)
   }
 
   const upload = async () => {
     if (!file) return
     setUploading(true)
-    const form = new FormData()
-    form.append('file', file)
-    await fetch('/api/timetable', {
-      method: 'POST',
-      headers: { 'x-admin-token': headers['x-admin-token'] },
-      body: form,
-    })
-    setFile(null)
-    setPreview(null)
-    await load()
-    setUploading(false)
+    setUploadError('')
+    setUploadSuccess(false)
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      const res = await fetch('/api/timetable', {
+        method: 'POST',
+        headers: { 'x-admin-token': headers['x-admin-token'] },
+        body: form,
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setUploadError(`Upload failed: ${data.error || res.statusText}`)
+        return
+      }
+      setFile(null)
+      setPreview(null)
+      setUploadSuccess(true)
+      await load()
+    } catch (e) {
+      setUploadError(`Network error: ${e instanceof Error ? e.message : 'Unknown error'}`)
+    } finally {
+      setUploading(false)
+    }
   }
 
   return (
@@ -513,6 +557,16 @@ function TimetableTab({ headers }: { headers: Record<string, string> }) {
           )}
           <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
         </div>
+        {uploadError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2.5 text-red-600 text-xs font-medium">
+            ❌ {uploadError}
+          </div>
+        )}
+        {uploadSuccess && (
+          <div className="bg-green-50 border border-green-200 rounded-xl px-3 py-2.5 text-green-600 text-xs font-medium">
+            ✅ Timetable uploaded successfully!
+          </div>
+        )}
         <button
           onClick={upload}
           disabled={!file || uploading}
