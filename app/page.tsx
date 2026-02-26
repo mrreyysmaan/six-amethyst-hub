@@ -22,8 +22,20 @@ async function getData() {
   ])
   const settingsMap: Record<string, string> = {}
   for (const row of settingsRes.data || []) settingsMap[row.key] = row.value
+
+  // Hide announcements whose event/deadline date has passed (they "erase themselves")
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const allAnnouncements = (announcementsRes.data || []) as Announcement[]
+  const announcements = allAnnouncements.filter((a) => {
+    if (!a.deadline) return true
+    const d = new Date(a.deadline)
+    d.setHours(0, 0, 0, 0)
+    return d >= today
+  })
+
   return {
-    announcements: (announcementsRes.data || []) as Announcement[],
+    announcements,
     posters: (postersRes.data || []) as AttendancePoster[],
     photos: (photosRes.data || []) as GalleryPhoto[],
     timetable: (timetableRes.data || null) as Timetable | null,

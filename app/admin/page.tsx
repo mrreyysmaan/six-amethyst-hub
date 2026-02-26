@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import {
-  Lock, LogOut, Plus, Trash2, Pin, PinOff,
+  Lock, LogOut, Plus, Trash2, Pin, PinOff, Pencil,
   CheckCircle, XCircle, Upload, RefreshCw, Wrench, Clock, Wifi, Sparkles
 } from 'lucide-react'
 import type { Announcement, AnnouncementTag, AttendancePoster, GalleryPhoto } from '@/lib/types'
@@ -95,6 +95,7 @@ function AnnouncementsTab({ headers }: { headers: Record<string, string> }) {
   const [items, setItems] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [parsing, setParsing] = useState(false)
   const [parseError, setParseError] = useState('')
@@ -111,12 +112,49 @@ function AnnouncementsTab({ headers }: { headers: Record<string, string> }) {
   }
   useEffect(() => { load() }, [])
 
+  const openNew = () => {
+    setEditingId(null)
+    setForm({ title: '', body: '', summary: '', tag: 'general', deadline: '', form_url: '', pinned: false })
+    setShowForm(true)
+  }
+
+  const openEdit = (item: Announcement) => {
+    setEditingId(item.id)
+    setForm({
+      title: item.title,
+      body: item.body,
+      summary: item.summary ?? '',
+      tag: item.tag,
+      deadline: item.deadline ?? '',
+      form_url: item.form_url ?? '',
+      pinned: item.pinned,
+    })
+    setShowForm(true)
+  }
+
   const post = async () => {
     setSaving(true)
-    await fetch('/api/announcements', {
-      method: 'POST', headers,
-      body: JSON.stringify({ ...form, summary: form.summary || null, deadline: form.deadline || null, form_url: form.form_url || null }),
-    })
+    if (editingId) {
+      await fetch('/api/announcements', {
+        method: 'PATCH', headers,
+        body: JSON.stringify({
+          id: editingId,
+          title: form.title,
+          body: form.body,
+          summary: form.summary || null,
+          tag: form.tag,
+          deadline: form.deadline || null,
+          form_url: form.form_url || null,
+          pinned: form.pinned,
+        }),
+      })
+    } else {
+      await fetch('/api/announcements', {
+        method: 'POST', headers,
+        body: JSON.stringify({ ...form, summary: form.summary || null, deadline: form.deadline || null, form_url: form.form_url || null }),
+      })
+    }
+    setEditingId(null)
     setForm({ title: '', body: '', summary: '', tag: 'general', deadline: '', form_url: '', pinned: false })
     setShowForm(false)
     await load()
@@ -168,7 +206,7 @@ function AnnouncementsTab({ headers }: { headers: Record<string, string> }) {
     <div>
       <div className="flex items-center justify-between mb-5">
         <TabHeading title="Announcements" />
-        <button onClick={() => setShowForm(!showForm)}
+        <button onClick={openNew}
           className="flex items-center gap-1.5 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-xl transition-colors">
           <Plus size={14} /> New
         </button>
@@ -176,7 +214,7 @@ function AnnouncementsTab({ headers }: { headers: Record<string, string> }) {
 
       {showForm && (
         <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-4 mb-5 space-y-3">
-          <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">New Announcement</p>
+          <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{editingId ? 'Edit Announcement' : 'New Announcement'}</p>
           <div>
             <label className="block text-xs text-zinc-500 mb-1 font-medium">1. Paste full announcement (Malay or English)</label>
             <textarea placeholder="Paste the full announcement here..." value={form.body}
@@ -223,7 +261,7 @@ function AnnouncementsTab({ headers }: { headers: Record<string, string> }) {
           </label>
           <button onClick={post} disabled={!form.title || !form.body || saving}
             className="w-full py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white font-bold rounded-xl transition-colors">
-            {saving ? 'Posting...' : 'Post Announcement'}
+            {saving ? (editingId ? 'Updating...' : 'Posting...') : (editingId ? 'Update Announcement' : 'Post Announcement')}
           </button>
         </div>
       )}
@@ -246,6 +284,11 @@ function AnnouncementsTab({ headers }: { headers: Record<string, string> }) {
                   <p className="text-xs text-zinc-600 mt-0.5 font-medium">{new Date(item.created_at).toLocaleDateString('en-MY')}</p>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
+                  <button onClick={() => openEdit(item)}
+                    className="w-8 h-8 rounded-lg bg-zinc-700 border border-zinc-600 flex items-center justify-center"
+                    title="Edit">
+                    <Pencil size={13} className="text-zinc-300" />
+                  </button>
                   <button onClick={() => toggle(item.id, item.pinned)}
                     className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
                     {item.pinned ? <PinOff size={13} className="text-amber-400" /> : <Pin size={13} className="text-amber-500" />}
