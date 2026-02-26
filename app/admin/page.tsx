@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import {
   Lock, LogOut, Plus, Trash2, Pin, PinOff,
-  CheckCircle, XCircle, Upload, RefreshCw, Wrench, Clock, Wifi
+  CheckCircle, XCircle, Upload, RefreshCw, Wrench, Clock, Wifi, Sparkles
 } from 'lucide-react'
 import type { Announcement, AnnouncementTag, AttendancePoster, GalleryPhoto } from '@/lib/types'
 
@@ -96,6 +96,8 @@ function AnnouncementsTab({ headers }: { headers: Record<string, string> }) {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [parsing, setParsing] = useState(false)
+  const [parseError, setParseError] = useState('')
   const [form, setForm] = useState({
     title: '', body: '', tag: 'general' as AnnouncementTag,
     deadline: '', form_url: '', pinned: false,
@@ -132,6 +134,35 @@ function AnnouncementsTab({ headers }: { headers: Record<string, string> }) {
     await load()
   }
 
+  const parseWithAI = async () => {
+    if (!form.body.trim()) return
+    setParsing(true)
+    setParseError('')
+    try {
+      const res = await fetch('/api/announcements/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: form.body }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setParseError(data.error || 'Could not parse')
+        return
+      }
+      setForm((prev) => ({
+        ...prev,
+        title: data.title || prev.title,
+        tag: (data.tag && ['general', 'reminder', 'event', 'collection', 'urgent'].includes(data.tag) ? data.tag : prev.tag) as AnnouncementTag,
+        form_url: data.form_url ?? prev.form_url,
+        deadline: data.deadline ?? prev.deadline,
+      }))
+    } catch {
+      setParseError('Something went wrong')
+    } finally {
+      setParsing(false)
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
@@ -145,11 +176,26 @@ function AnnouncementsTab({ headers }: { headers: Record<string, string> }) {
       {showForm && (
         <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-4 mb-5 space-y-3">
           <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">New Announcement</p>
-          <input type="text" placeholder="Title (e.g. Class Trip Payment)" value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })} className={INPUT} />
-          <textarea placeholder="Paste the full announcement here..." value={form.body}
-            onChange={(e) => setForm({ ...form, body: e.target.value })}
-            rows={6} className={`${INPUT} resize-none`} />
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1 font-medium">1. Paste full announcement (Malay or English)</label>
+            <textarea placeholder="Paste the full announcement here..." value={form.body}
+              onChange={(e) => { setForm({ ...form, body: e.target.value }); setParseError('') }}
+              rows={6} className={`${INPUT} resize-none`} />
+          </div>
+          <button type="button" onClick={parseWithAI} disabled={!form.body.trim() || parsing}
+            className="w-full py-2.5 rounded-xl border border-purple-500/50 bg-purple-500/10 text-purple-300 font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40 transition-colors">
+            {parsing ? (
+              <><div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" /> Auto-filling...</>
+            ) : (
+              <><Sparkles size={14} /> Auto-fill title &amp; details from text</>
+            )}
+          </button>
+          {parseError && <p className="text-red-400 text-xs font-medium">{parseError}</p>}
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1 font-medium">2. Title (short; you can edit after auto-fill)</label>
+            <input type="text" placeholder="Title" value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })} className={INPUT} />
+          </div>
           <div className="flex flex-wrap gap-2">
             {TAG_OPTIONS.map((t) => (
               <button key={t.value} onClick={() => setForm({ ...form, tag: t.value })}
