@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
     .insert([{
       title: body.title,
       body: body.body,
+      summary: body.summary ?? null,
       tag: body.tag || 'general',
       deadline: body.deadline || null,
       form_url: body.form_url || null,

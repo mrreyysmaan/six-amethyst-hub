@@ -63,10 +63,14 @@ function AnnouncementCard({ item }: { item: Announcement }) {
           <Clock size={10} /> {formatDate(item.created_at)}
         </p>
 
-        {/* Preview */}
+        {/* Preview: short description (summary) or trimmed body — avoids long blank space */}
         {!expanded && (
-          <p className="text-sm text-zinc-300 mt-2 line-clamp-2 announcement-body leading-relaxed">
-            {item.body}
+          <p className="text-sm text-zinc-300 mt-2 line-clamp-3 leading-relaxed break-words">
+            {item.summary?.trim()
+              ? item.summary
+              : item.body
+                ? item.body.replace(/\s+/g, ' ').trim().slice(0, 220) + (item.body.length > 220 ? '…' : '')
+                : ''}
           </p>
         )}
       </button>

@@ -4,6 +4,7 @@ export interface Announcement {
   id: string
   title: string
   body: string
+  summary: string | null
   tag: AnnouncementTag
   deadline: string | null
   form_url: string | null

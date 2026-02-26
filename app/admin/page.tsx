@@ -99,7 +99,7 @@ function AnnouncementsTab({ headers }: { headers: Record<string, string> }) {
   const [parsing, setParsing] = useState(false)
   const [parseError, setParseError] = useState('')
   const [form, setForm] = useState({
-    title: '', body: '', tag: 'general' as AnnouncementTag,
+    title: '', body: '', summary: '', tag: 'general' as AnnouncementTag,
     deadline: '', form_url: '', pinned: false,
   })
 
@@ -115,9 +115,9 @@ function AnnouncementsTab({ headers }: { headers: Record<string, string> }) {
     setSaving(true)
     await fetch('/api/announcements', {
       method: 'POST', headers,
-      body: JSON.stringify({ ...form, deadline: form.deadline || null, form_url: form.form_url || null }),
+      body: JSON.stringify({ ...form, summary: form.summary || null, deadline: form.deadline || null, form_url: form.form_url || null }),
     })
-    setForm({ title: '', body: '', tag: 'general', deadline: '', form_url: '', pinned: false })
+    setForm({ title: '', body: '', summary: '', tag: 'general', deadline: '', form_url: '', pinned: false })
     setShowForm(false)
     await load()
     setSaving(false)
@@ -152,6 +152,7 @@ function AnnouncementsTab({ headers }: { headers: Record<string, string> }) {
       setForm((prev) => ({
         ...prev,
         title: data.title || prev.title,
+        summary: data.summary ?? prev.summary,
         tag: (data.tag && ['general', 'reminder', 'event', 'collection', 'urgent'].includes(data.tag) ? data.tag : prev.tag) as AnnouncementTag,
         form_url: data.form_url ?? prev.form_url,
         deadline: data.deadline ?? prev.deadline,
@@ -195,6 +196,12 @@ function AnnouncementsTab({ headers }: { headers: Record<string, string> }) {
             <label className="block text-xs text-zinc-500 mb-1 font-medium">2. Title (short; you can edit after auto-fill)</label>
             <input type="text" placeholder="Title" value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })} className={INPUT} />
+          </div>
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1 font-medium">Description (shown on card; edit if needed)</label>
+            <textarea placeholder="Short description (2–3 sentences)" value={form.summary}
+              onChange={(e) => setForm({ ...form, summary: e.target.value })}
+              rows={2} className={`${INPUT} resize-none`} />
           </div>
           <div className="flex flex-wrap gap-2">
             {TAG_OPTIONS.map((t) => (
